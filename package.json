@@ -1,5 +1,5 @@
 {
-  "name": "hubspotHack",
+  "name": "TwilioHubspotHack",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,8 +8,16 @@
     "deploy": "twilio-run deploy"
   },
   "dependencies": {
-    "twilio": "^3.56",
-    "@twilio/runtime-handler": "1.2.3"
+    "@twilio/runtime-handler": "1.2.3",
+    "axios": "^0.27.2",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "http": "0.0.1-security",
+    "hubspot": "^2.3.14",
+    "node-cache": "^5.1.2",
+    "open": "^8.4.0",
+    "request-promise-native": "^1.0.9",
+    "twilio": "^3.56"
   },
   "devDependencies": {
     "twilio-run": "^3.4.2"
