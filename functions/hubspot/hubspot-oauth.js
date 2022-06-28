@@ -1,27 +1,68 @@
-//https://twiliohubspothack-8221-dev.twil.io/hubspot/hubspot-oauthURL
-//https://app.hubspot.com/oauth/authorize?client_id=bb06fbc0-8b81-473f-b838-f683caaa2088&redirect_uri=https://twiliohubspothack-8221-dev.twil.io/hubspot/hubspot-oauthURL&scope=crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.objects.companies.read
+//Node API methods:
+//https://github.com/MadKudu/node-hubspot
+//https://github.com/HubSpot/hubspot-api-nodejs
 
-const http = require("http")
-const express = require("express")
-const app = express()
-const port = 4000
+const axios = require('axios')
+const { request } = require('http');
+const Hubspot = require('@hubspot/api-client')
 
-exports.handler = function (context, event, callback) {
-    var redirect_uri = 'https://twiliohubspothack-8221-dev.twil.io/hubspot/hubspot-oauthURL'
-    const authUrl = 
-        'https://app.hubspot.com/oauth/authorize' +
-        '?client_id=' + context.HUBSPOT_CLIENT_ID + 
-        '&scope=crm.objects.contacts.read%20crm.objects.contacts.write%20crm.objects.companies.write%20crm.objects.companies.read' +
-        '&redirect_uri=' + redirect_uri;
-    
-    app.get("/", (req, res) => {
-        res.redirect(301, authUrl)
-    });
-    console.log(authUrl)
+exports.handler = async function (context, event, callback) {
+    const response = new Twilio.Response();
+    const hubspotClient = new Hubspot.Client({ accessToken: event.code, developerApiKey: context.HUBSPOT_API_KEY });
+    //console.log(hubspotClient)
+
+    const fetch = {
+        "objectTypes": [
+            {
+                "name": "contacts",
+                "propertiesToSend": [
+                    "phone",
+                    "mobilephone",
+                    "lastname",
+                    "firstname"
+                ]
+            }
+        ],
+        "targetUrl": "https://www.example.com/hubspot/target"
+        //"targetUrl": ""
+    };
     /*
-    const twiml = new Twilio.twiml.redirect_uri
-    twiml.redirect_uri = authUrl
+    const display = {
+        "properties": {
+            "dataType": "STRING",
+            "name": "pet_name",
+            "label": "Pets Name"
+        }
+    };
     */
-    callback(null, null);
-    
+    const display = {
+        "dataType": "STRING",
+        "name": "phone_number",
+        "label": "phone number"
+    };
+    const actions = {
+        "baseUrls": [
+            "https://twiliohubspothack-8221-dev.twil.io/sms/reply"
+        ]
+    };
+
+    const CardCreateRequest = { title: "Send SMS", fetch, display, actions };
+
+    //console.log(CardCreateRequest)
+
+    const appId = context.HUBSPOT_APP_ID;
+
+    try {
+        const apiResponse = await hubspotClient.crm.extensions.cards.cardsApi.create(appId, CardCreateRequest);
+        console.log(apiResponse)
+        callback(null, apiResponse);
+
+    } catch (e) {
+        console.log("woops")
+        e.message === 'HTTP request failed'
+            ? console.error(JSON.stringify(e.response, null, 2))
+            : console.error(e)
+    }
+
 };
+
